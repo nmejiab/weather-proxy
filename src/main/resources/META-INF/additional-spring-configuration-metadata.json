@@ -1,0 +1,14 @@
+{
+    "properties": [
+        {
+            "name": "weatherstack.default-access-key",
+            "type": "java.lang.String",
+            "description": "Default access key for WeatherStack API."
+        },
+        {
+            "name": "weatherstack.default-base-url",
+            "type": "java.lang.String",
+            "description": "Default base URL for WeatherStack API."
+        }
+    ]
+}

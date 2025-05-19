@@ -1,0 +1,6 @@
+spring:
+    application:
+        name: weather-proxy
+weatherstack:
+    default-base-url: http://api.weatherstack.com/current
+    default-access-key: 03e6d2502afba9c2d711545efb25c1b6
