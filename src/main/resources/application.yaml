@@ -1,6 +1,10 @@
 spring:
     application:
         name: weather-proxy
+    datasource:
+        url: jdbc:mysql://localhost:3306/weather?createDatabaseIfNotExist=true
+        username: root
+        password: 1234
 weatherstack:
     default-base-url: http://api.weatherstack.com/current
     default-access-key: 03e6d2502afba9c2d711545efb25c1b6
