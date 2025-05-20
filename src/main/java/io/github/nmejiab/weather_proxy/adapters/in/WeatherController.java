@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.nmejiab.weather_proxy.domain.models.CurrentWeatherQueryConfig;
 import io.github.nmejiab.weather_proxy.domain.models.dtos.CurrentWeatherDTO;
 import io.github.nmejiab.weather_proxy.domain.services.WeatherService;
+import io.github.nmejiab.weather_proxy.repositories.ILogWeatherRepository;
 import io.github.nmejiab.weather_proxy.repositories.IWeatherRepository;
 
 
@@ -23,15 +24,18 @@ public class WeatherController {
     private final WeatherService weatherService;
     private final Map<String, IWeatherRepository> weatherRepositories;
     private final ObjectMapper objectMapper;
+    private final ILogWeatherRepository logWeatherRepository;
 
     public WeatherController(
-        WeatherService weatherService, Map<String,
-        IWeatherRepository> weatherRepositories,
-        ObjectMapper objectMapper
+        WeatherService weatherService,
+        Map<String, IWeatherRepository> weatherRepositories,
+        ObjectMapper objectMapper,
+        ILogWeatherRepository logWeatherRepository
     ) {
         this.weatherService = weatherService;
         this.weatherRepositories = weatherRepositories;
         this.objectMapper = objectMapper;
+        this.logWeatherRepository = logWeatherRepository;
     }
 
     @GetMapping("/{city}")
@@ -57,6 +61,12 @@ public class WeatherController {
         weatherService.setWeatherRepositoryService(selectedRepository);
         CurrentWeatherDTO currentWeather = weatherService.getCurrentWeather(
             city, currentWeatherQueryConfig
+        );
+        if (currentWeather == null) {
+            return ResponseEntity.notFound().build(); // Ciudad no encontrada
+        }
+        logWeatherRepository.saveLog(
+            city, "success", source, null
         );
         return ResponseEntity.ok(currentWeather);
     }

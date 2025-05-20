@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.nmejiab.weather_proxy.domain.models.CurrentWeatherQueryConfig;
 import io.github.nmejiab.weather_proxy.domain.models.CurrentWeather;
+import io.github.nmejiab.weather_proxy.repositories.ILogWeatherRepository;
 import io.github.nmejiab.weather_proxy.repositories.IWeatherRepository;
 import lombok.Data;
 
@@ -25,6 +26,7 @@ import lombok.Data;
 public class WeatherRepository implements IWeatherRepository{
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final ILogWeatherRepository logWeatherRepository;
     
     @Value("${weatherstack.default-base-url}")
     private String apiUrl;
@@ -32,9 +34,14 @@ public class WeatherRepository implements IWeatherRepository{
     @Value("${weatherstack.default-access-key}")
     private String apiKey;
 
-    public WeatherRepository(RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public WeatherRepository(
+        RestTemplate restTemplate,
+        ObjectMapper objectMapper,
+        ILogWeatherRepository logWeatherRepository
+    ) {
         this.objectMapper = objectMapper;
         this.restTemplate = restTemplate;
+        this.logWeatherRepository = logWeatherRepository;
     }
 
     @Override
@@ -55,12 +62,25 @@ public class WeatherRepository implements IWeatherRepository{
             .queryParam("units", "m")
             .build()
             .toUriString();
-        String response = restTemplate.getForObject(request, String.class);
+        
+        String response;
+        try {
+            response = restTemplate.getForObject(request, String.class);
+        } catch (Exception e) {
+            logWeatherRepository.saveLog(cityName, "fail", "openweather", "HTTP request failed: " + e.getMessage());
+            return null;
+        }
+        
         JsonNode jsonResponse;
         try{
             jsonResponse = objectMapper.readTree(response);
         }catch(Exception e){
-            // Implement logging, storing and return null
+            logWeatherRepository.saveLog(cityName, "fail", "openweather", e.getMessage());
+            return null;
+        }
+
+        if(jsonResponse == null || (jsonResponse.has("success") && !jsonResponse.get("success").asBoolean())){
+            logWeatherRepository.saveLog(cityName, "fail", "openweather", "Invalid response: " + response);
             return null;
         }
 
@@ -79,7 +99,7 @@ public class WeatherRepository implements IWeatherRepository{
         try{
             temperature = jsonResponse.get("current").get("temperature").asInt();
         }catch(Exception e){
-            // Implement logging, storing and return null
+            logWeatherRepository.saveLog(cityName, "fail", "openweather", e.getMessage());
             return null;
         }
 
@@ -87,7 +107,7 @@ public class WeatherRepository implements IWeatherRepository{
         try{
             windSpeed = jsonResponse.get("current").get("wind_speed").asInt();
         }catch(Exception e){
-            // Implement logging, storing and return null
+            logWeatherRepository.saveLog(cityName, "fail", "openweather", e.getMessage());
             return null;
         }
         
