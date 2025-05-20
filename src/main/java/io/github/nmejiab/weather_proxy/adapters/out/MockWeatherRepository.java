@@ -10,6 +10,9 @@ import io.github.nmejiab.weather_proxy.repositories.IWeatherRepository;
 public class MockWeatherRepository implements IWeatherRepository {
     @Override
     public CurrentWeather getWeatherByCity(String city, CurrentWeatherQueryConfig config) {
+        if(city.equals("Unknown")) {
+            return null;
+        }
         // Mock implementation for testing purposes
         return new CurrentWeather(
             15,

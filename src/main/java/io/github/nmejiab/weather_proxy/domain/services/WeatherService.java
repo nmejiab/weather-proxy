@@ -22,13 +22,7 @@ public class WeatherService {
     
     public CurrentWeatherDTO getCurrentWeather(String city, CurrentWeatherQueryConfig config) {
         CurrentWeather currentWeather = null;
-        try {
-            currentWeather = weatherRepositoryService.getWeatherByCity(city, config);
-        }
-        catch (Exception e) {
-            logWeatherRepository.saveLog(city, "fail", "WEATHER_API", e.getMessage());
-            return null;
-        }
+        currentWeather = weatherRepositoryService.getWeatherByCity(city, config);
         if (currentWeather == null) {
             return null;
         }
