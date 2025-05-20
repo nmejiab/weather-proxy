@@ -26,6 +26,14 @@ public class WeatherController {
     private final ObjectMapper objectMapper;
     private final ILogWeatherRepository logWeatherRepository;
 
+    /**
+     * Constructs a new {@code WeatherController} with the required dependencies.
+     *
+     * @param weatherService         the service responsible for weather-related business logic
+     * @param weatherRepositories    a map of weather repository implementations, keyed by identifier
+     * @param objectMapper           the Jackson {@code ObjectMapper} for JSON serialization/deserialization
+     * @param logWeatherRepository   the repository used for logging weather-related operations
+     */
     public WeatherController(
         WeatherService weatherService,
         Map<String, IWeatherRepository> weatherRepositories,
@@ -38,6 +46,16 @@ public class WeatherController {
         this.logWeatherRepository = logWeatherRepository;
     }
 
+    /**
+     * Handles HTTP GET requests to retrieve the current weather for a specified city.
+     *
+     * @param city   the name of the city for which to retrieve weather information (extracted from the path variable)
+     * @param config a JSON string representing the configuration for the weather query (provided as a request parameter)
+     * @param source the identifier of the weather data source to use (provided as a request parameter)
+     * @return a {@link ResponseEntity} containing the {@link CurrentWeatherDTO} if successful,
+     *         a bad request response if the config or source is invalid,
+     *         or a not found response if the city is not found
+     */
     @GetMapping("/{city}")
     public ResponseEntity<CurrentWeatherDTO> getCurrentWeather(
         @PathVariable String city,

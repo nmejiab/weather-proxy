@@ -20,6 +20,40 @@ import io.github.nmejiab.weather_proxy.repositories.ILogWeatherRepository;
 import io.github.nmejiab.weather_proxy.repositories.IWeatherRepository;
 import lombok.Data;
 
+/**
+ * WeatherRepository is a Spring-managed repository implementation for fetching current weather data
+ * from the Weatherstack API. It uses RestTemplate for HTTP requests and ObjectMapper for JSON parsing.
+ * The repository supports dynamic configuration via {@link CurrentWeatherQueryConfig} and logs all
+ * request attempts and failures using {@link ILogWeatherRepository}.
+ *
+ * <p>
+ * The repository is marked as the primary bean for the "openweather" qualifier.
+ * </p>
+ *
+ * <p>
+ * Configuration properties:
+ * <ul>
+ *   <li><b>weatherstack.default-base-url</b>: The default base URL for the Weatherstack API.</li>
+ *   <li><b>weatherstack.default-access-key</b>: The default access key for the Weatherstack API.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Main responsibilities:
+ * <ul>
+ *   <li>Builds and sends HTTP requests to the Weatherstack API to retrieve current weather data by city name.</li>
+ *   <li>Parses the JSON response to extract temperature, weather conditions, and wind speed.</li>
+ *   <li>Handles errors gracefully and logs failures for monitoring and debugging purposes.</li>
+ *   <li>Allows overriding of API URL and key via {@link CurrentWeatherQueryConfig}.</li>
+ * </ul>
+ * </p>
+ *
+ * @author [Your Name]
+ * @see IWeatherRepository
+ * @see CurrentWeather
+ * @see CurrentWeatherQueryConfig
+ * @see ILogWeatherRepository
+ */
 @Repository("openweather")
 @Primary
 @Data
@@ -44,6 +78,20 @@ public class WeatherRepository implements IWeatherRepository{
         this.logWeatherRepository = logWeatherRepository;
     }
 
+    /**
+     * Retrieves the current weather information for a given city.
+     * <p>
+     * This method queries a weather API using the provided city name and an optional configuration.
+     * If the configuration is provided, it overrides the default API URL and API key.
+     * The method constructs the request, sends it using a RestTemplate, and parses the JSON response.
+     * If the request or parsing fails, it logs the error and returns {@code null}.
+     * </p>
+     *
+     * @param cityName the name of the city for which to retrieve weather information
+     * @param config an optional configuration object containing API URL and API key; if {@code null}, default values are used
+     * @return a {@link CurrentWeather} object containing temperature, weather condition, and wind speed,
+     *         or {@code null} if the request fails or the response is invalid
+     */
     @Override
     public CurrentWeather getWeatherByCity(String cityName, CurrentWeatherQueryConfig config){
         // Set the config if is available
