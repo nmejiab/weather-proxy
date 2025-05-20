@@ -17,9 +17,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.nmejiab.weather_proxy.domain.models.CurrentWeatherQueryConfig;
 import io.github.nmejiab.weather_proxy.domain.models.CurrentWeather;
 import io.github.nmejiab.weather_proxy.repositories.IWeatherRepository;
+import lombok.Data;
 
 @Repository("openweather")
 @Primary
+@Data
 public class WeatherRepository implements IWeatherRepository{
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -37,6 +39,16 @@ public class WeatherRepository implements IWeatherRepository{
 
     @Override
     public CurrentWeather getWeatherByCity(String cityName, CurrentWeatherQueryConfig config){
+        // Set the config if is available
+        // If the config is null, use the default values
+        if(config != null){
+            if(config.getBaseUrl() != null){
+                apiUrl = config.getBaseUrl();
+            }
+            if(config.getApiKey() != null){
+                apiKey = config.getApiKey();
+            }
+        }
         String request = UriComponentsBuilder.fromUriString(apiUrl)
             .queryParam("query", cityName)
             .queryParam("access_key", apiKey)
