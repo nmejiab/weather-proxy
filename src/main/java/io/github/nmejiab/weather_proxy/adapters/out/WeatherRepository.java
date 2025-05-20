@@ -6,17 +6,20 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.github.nmejiab.weather_proxy.domain.models.CurrenWeatherQueryConfig;
+import io.github.nmejiab.weather_proxy.domain.models.CurrentWeatherQueryConfig;
 import io.github.nmejiab.weather_proxy.domain.models.CurrentWeather;
 import io.github.nmejiab.weather_proxy.repositories.IWeatherRepository;
 
-@Repository
+@Repository("openweather")
+@Primary
 public class WeatherRepository implements IWeatherRepository{
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -24,14 +27,23 @@ public class WeatherRepository implements IWeatherRepository{
     @Value("${weatherstack.default-base-url}")
     private String apiUrl;
 
+    @Value("${weatherstack.default-access-key}")
+    private String apiKey;
+
     public WeatherRepository(RestTemplate restTemplate, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.restTemplate = restTemplate;
     }
 
     @Override
-    public CurrentWeather getWeatherByCity(String cityName, CurrenWeatherQueryConfig config){
-        String response = restTemplate.getForObject(apiUrl, String.class);
+    public CurrentWeather getWeatherByCity(String cityName, CurrentWeatherQueryConfig config){
+        String request = UriComponentsBuilder.fromUriString(apiUrl)
+            .queryParam("query", cityName)
+            .queryParam("access_key", apiKey)
+            .queryParam("units", "m")
+            .build()
+            .toUriString();
+        String response = restTemplate.getForObject(request, String.class);
         JsonNode jsonResponse;
         try{
             jsonResponse = objectMapper.readTree(response);
